@@ -1,4 +1,5 @@
 import * as http from "http";
+import * as path from "path";
 import * as WebSocket from "ws";
 import {Socket} from "net";
 import {PluginDiscovery} from "zox-plugins";
@@ -32,12 +33,12 @@ export async function bootstrap(options?: BootstrapOptions): Promise<ServiceCont
 
     if (options.staticPages)
     {
-        await pluginDiscovery.scanDirectory('lib/OptionalPlugins/StaticPages');
+        await pluginDiscovery.scanDirectory(path.relative(__dirname, 'lib/OptionalPlugins/StaticPages'));
     }
 
     if (options.graphql)
     {
-        await pluginDiscovery.scanDirectory('lib/OptionalPlugins/GraphQL');
+        await pluginDiscovery.scanDirectory(path.relative(__dirname, 'lib/OptionalPlugins/GraphQL'));
     }
 
     if (options.node_modules)
