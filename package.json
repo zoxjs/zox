@@ -1,0 +1,50 @@
+{
+  "name": "zox",
+  "version": "1.0.0",
+  "description": "",
+  "author": "Zoran Ravic <contact@zoranravic.com> (zoranravic.com)",
+  "license": "MIT",
+  "repository": "zoxjs/zox",
+  "homepage": "http://zox.zoranravic.com/",
+  "main": "lib/index.js",
+  "files": [
+    "LICENSE",
+    "Readme.md",
+    "index.js",
+    "index.d.ts",
+    "lib/**/*.js",
+    "lib/**/*.d.ts"
+  ],
+  "keywords": [
+    "framework",
+    "web",
+    "server",
+    "graphql",
+    "rest",
+    "restful",
+    "router",
+    "app",
+    "api"
+  ],
+  "dependencies": {
+    "js-yaml": "^3.12.0",
+    "marked": "^0.4.0",
+    "mime": "^2.3.1",
+    "reflect-metadata": "^0.1.12",
+    "ws": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/graphql": "^0.13.3",
+    "@types/js-yaml": "^3.11.2",
+    "@types/marked": "^0.3.0",
+    "@types/node": "^10.5.1",
+    "graphql": "^0.13.2",
+    "graphql-plugins": "^1.0.0",
+    "zox-plugins": "^1.0.0"
+  },
+  "plugins": {
+    "dirs": [
+      "lib/Plugins"
+    ]
+  }
+}
