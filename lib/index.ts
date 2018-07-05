@@ -33,12 +33,14 @@ export async function bootstrap(options?: BootstrapOptions): Promise<ServiceCont
 
     if (options.staticPages)
     {
-        await pluginDiscovery.scanDirectory(path.relative(__dirname, 'lib/OptionalPlugins/StaticPages'));
+        await pluginDiscovery.scanDirectory(
+            path.join(path.relative(process.cwd(), __dirname), 'OptionalPlugins/StaticPages'));
     }
 
     if (options.graphql)
     {
-        await pluginDiscovery.scanDirectory(path.relative(__dirname, 'lib/OptionalPlugins/GraphQL'));
+        await pluginDiscovery.scanDirectory(
+            path.join(path.relative(process.cwd(), __dirname), 'OptionalPlugins/GraphQL'));
     }
 
     if (options.node_modules)
