@@ -15,13 +15,20 @@ export class FileResponse implements IResponse
     public headers: OutgoingHttpHeaders;
     private readonly file: string | FileWithStats;
     private readonly inline: boolean;
+    private readonly setContentDisposition: boolean;
 
-    constructor(file: string | FileWithStats, inline: boolean = false, statusCode: number = 200, headers?: OutgoingHttpHeaders)
+    constructor(
+        file: string | FileWithStats,
+        inline: boolean = false,
+        statusCode: number = 200,
+        headers?: OutgoingHttpHeaders,
+        setContentDisposition?: boolean)
     {
         this.file = file;
         this.inline = inline;
         this.statusCode = statusCode;
         this.headers = typeof headers == 'object' ? headers : undefined;
+        this.setContentDisposition = setContentDisposition != false;
     }
 
     public send(response: ServerResponse): void
@@ -38,7 +45,7 @@ export class FileResponse implements IResponse
                 }
                 else
                 {
-                    this.sendFile(response, {filePath: this.file as any as string, stats});
+                    this.sendFile(response, {filePath: this.file as string, stats});
                 }
             });
         }
@@ -51,11 +58,16 @@ export class FileResponse implements IResponse
     private sendFile(response: ServerResponse, file: FileWithStats)
     {
         const mimeType = mime.getType(file.filePath);
-        response.writeHead(this.statusCode, Object.assign({
+        const headers = {
             'Content-Type': mimeType,
             'Content-Length': file.stats.size,
-            'Content-Disposition': `${(this.inline ? 'inline' : 'attachment')}; filename="${path.basename(file.filePath)}"`
-        }, this.headers));
+        };
+        if (this.setContentDisposition)
+        {
+            headers['Content-Disposition'] =
+                `${(this.inline ? 'inline' : 'attachment')}; filename="${path.basename(file.filePath)}"`;
+        }
+        response.writeHead(this.statusCode, Object.assign(headers, this.headers));
         const readStream = fs.createReadStream(file.filePath);
         readStream.pipe(response);
     }

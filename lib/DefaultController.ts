@@ -68,11 +68,7 @@ export class DefaultController implements IController
                 {
                     return new EmptyResponse(304, headers);
                 }
-                if (isHtml)
-                {
-                    headers['Content-Disposition'] = undefined;
-                }
-                return new FileResponse({filePath, stats}, false, 200, headers);
+                return new FileResponse({filePath, stats}, false, 200, headers, !isHtml);
             }
         }
         catch (e) {}
