@@ -27,7 +27,7 @@ export class DefaultController implements IController
         const publicFiles = typeof options.publicFiles === 'string' ? options.publicFiles : null;
 
         let filePath = decodeURI(request.url);
-        if (filePath.startsWith('/~/'))
+        if (filePath.startsWith('/$/'))
         {
             filePath = filePath.substring(3);
             filePath = path.join('node_modules', filePath);
