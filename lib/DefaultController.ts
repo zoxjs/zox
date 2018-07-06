@@ -36,7 +36,7 @@ export class DefaultController implements IController
         {
             filePath = path.join(publicFiles, filePath);
         }
-
+        let isHtml = filePath.endsWith('.html') || filePath.endsWith('.htm');
         try
         {
             let stats: fs.Stats = await statAsync(filePath);
@@ -46,6 +46,7 @@ export class DefaultController implements IController
                 try
                 {
                     let stats = await statAsync(path.join(filePath, 'index.html'));
+                    isHtml = true;
                 }
                 catch (e) {}
                 if (stats == undefined)
@@ -53,6 +54,7 @@ export class DefaultController implements IController
                     try
                     {
                         let stats = await statAsync(path.join(filePath, 'index.htm'));
+                        isHtml = true;
                     }
                     catch (e) {}
                 }
@@ -65,6 +67,10 @@ export class DefaultController implements IController
                 if (request.headers['if-none-match'] == headers.ETag)
                 {
                     return new EmptyResponse(304, headers);
+                }
+                if (isHtml)
+                {
+                    headers['Content-Disposition'] = undefined;
                 }
                 return new FileResponse({filePath, stats}, false, 200, headers);
             }
