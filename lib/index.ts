@@ -13,8 +13,14 @@ import {IWebSocketControllerManager} from "./Plugins/Services/WebSocketControlle
 import {ConfigService} from "./Services/ConfigService";
 
 export type BootstrapOptions = {
-    configBasePath?: string
+    config?: {
+        defaultsPath?: string
+        overridesPath?: string
+        useCache?: boolean
+        warnIfMissing?: boolean
+    }
     log?: boolean
+    projectPlugins?: boolean
     node_modules?: boolean
     staticPages?: boolean
     graphql?: boolean
@@ -23,13 +29,16 @@ export type BootstrapOptions = {
 export async function bootstrap(options?: BootstrapOptions): Promise<ServiceContainer>
 {
     options = options || {};
-    options.configBasePath = options.configBasePath || 'config';
     options.log = options.log !== false;
 
-    console.log('Loading Plugins...');
+    if (options.log) console.log('Loading Plugins...');
 
     const pluginDiscovery = new PluginDiscovery();
-    await pluginDiscovery.scanProject();
+
+    if (options.projectPlugins)
+    {
+        await pluginDiscovery.scanProject();
+    }
 
     if (options.staticPages)
     {
@@ -51,9 +60,9 @@ export async function bootstrap(options?: BootstrapOptions): Promise<ServiceCont
     const container = new ServiceContainer();
     container.registerAs(IPluginDiscoveryService, pluginDiscovery);
 
-    console.log('Initializing...');
+    if (options.log) console.log('Initializing...');
 
-    container.registerUnresolved(new ConfigService(options.configBasePath));
+    container.registerUnresolved(new ConfigService(options.config));
 
     container.create(ServicePluginManager).registerServices(true);
 

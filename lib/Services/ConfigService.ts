@@ -3,6 +3,13 @@ import * as fs from "fs";
 import * as path from "path";
 import * as yaml from "js-yaml";
 
+export type ConfigOptions = {
+    defaultsPath?: string
+    overridesPath?: string
+    useCache?: boolean
+    warnIfMissing?: boolean
+}
+
 export type GlobalConfig = {
     cache: boolean
     watch: boolean
@@ -23,20 +30,30 @@ export abstract class IConfigService implements IService
     public abstract setConfig(configName: string, config: any): void;
 }
 
-export class ConfigService extends IConfigService
+export class ConfigService implements IConfigService
 {
-    private readonly basePath: string;
+    get serviceKey(): symbol
+    {
+        return serviceKey;
+    }
+
+    private readonly defaultsPath: string;
+    private readonly overridesPath: string;
     private readonly useCache: boolean;
     private readonly cache: { [key:string]: any };
     private readonly warnIfMissing: boolean;
 
-    constructor(basePath: string = 'config', useCache: boolean = true, warnIfMissing: boolean = true)
+    constructor(options?: ConfigOptions)
     {
-        super();
-        this.basePath = basePath;
-        this.useCache = useCache;
-        this.warnIfMissing = warnIfMissing;
-        if (useCache)
+        options = options || {};
+        options.defaultsPath = options.defaultsPath || 'config';
+        options.useCache = options.useCache !== false;
+        options.warnIfMissing = options.warnIfMissing !== false;
+        this.defaultsPath = options.defaultsPath;
+        this.overridesPath = options.overridesPath;
+        this.useCache = options.useCache;
+        this.warnIfMissing = options.warnIfMissing;
+        if (options.useCache)
         {
             this.cache = {};
         }
@@ -50,8 +67,15 @@ export class ConfigService extends IConfigService
         }
         else
         {
-            const filePath = path.join(this.basePath, configName);
-            let config = loadYamlOrJsonFile(filePath);
+            let config = undefined;
+            if (this.overridesPath)
+            {
+                config = loadYamlOrJsonFile(path.join(this.overridesPath, configName));
+            }
+            if (config === undefined)
+            {
+                config = loadYamlOrJsonFile(path.join(this.defaultsPath, configName));
+            }
             if (config === undefined)
             {
                 if (this.warnIfMissing)
@@ -70,7 +94,7 @@ export class ConfigService extends IConfigService
 
     public setConfig(configName: string, config: any): void
     {
-        const filePath = path.join(this.basePath, configName + '.json');
+        const filePath = path.join(this.overridesPath || this.defaultsPath, configName + '.json');
         fs.writeFileSync(filePath, JSON.stringify(config));
         if (this.useCache)
         {

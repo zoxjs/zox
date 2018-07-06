@@ -27,10 +27,7 @@ export class WebApp
 
     constructor(options?: BootstrapOptions)
     {
-        options = options || {};
-        options.configBasePath = options.configBasePath || 'config';
-        this.options = options;
-
+        this.options = options || {};
         this.container = new ServiceContainer();
         this.pluginDiscovery = new PluginDiscovery();
         this.container.registerAs(IPluginDiscoveryService, this.pluginDiscovery);
@@ -48,7 +45,7 @@ export class WebApp
 
     public listen(port: number)
     {
-        this.container.registerUnresolved(new ConfigService(this.options.configBasePath));
+        this.container.registerUnresolved(new ConfigService(this.options.config));
         this.container.registerUnresolved(new NoAliasResolverService());
         this.pluginDiscovery.scan(RoutePluginManager);
         this.pluginDiscovery.scan(ControllerResolverPluginManager);
