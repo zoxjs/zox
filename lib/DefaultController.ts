@@ -45,7 +45,7 @@ export class DefaultController implements IController
                 stats = undefined;
                 try
                 {
-                    let stats = await statAsync(path.join(filePath, 'index.html'));
+                    stats = await statAsync(path.join(filePath, 'index.html'));
                     isHtml = true;
                 }
                 catch (e) {}
@@ -53,7 +53,7 @@ export class DefaultController implements IController
                 {
                     try
                     {
-                        let stats = await statAsync(path.join(filePath, 'index.htm'));
+                        stats = await statAsync(path.join(filePath, 'index.htm'));
                         isHtml = true;
                     }
                     catch (e) {}
