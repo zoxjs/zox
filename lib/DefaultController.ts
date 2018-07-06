@@ -36,10 +36,28 @@ export class DefaultController implements IController
         {
             filePath = path.join(publicFiles, filePath);
         }
-        return statAsync(filePath)
-        .then((stats: fs.Stats) =>
+
+        try
         {
-            if(stats.isFile())
+            let stats: fs.Stats = await statAsync(filePath);
+            if (stats.isDirectory())
+            {
+                stats = undefined;
+                try
+                {
+                    let stats = await statAsync(path.join(filePath, 'index.html'));
+                }
+                catch (e) {}
+                if (stats == undefined)
+                {
+                    try
+                    {
+                        let stats = await statAsync(path.join(filePath, 'index.htm'));
+                    }
+                    catch (e) {}
+                }
+            }
+            if (stats != undefined && stats.isFile())
             {
                 const headers = {
                     'ETag': '"' + stats.ctimeMs.toString() + '"',
@@ -50,16 +68,9 @@ export class DefaultController implements IController
                 }
                 return new FileResponse({filePath, stats}, false, 200, headers);
             }
-            else
-            {
-                console.log('Route not found', request.url);
-                return this.container.create(RenderResponse, 'Not Found', 404);
-            }
-        })
-        .catch(() =>
-        {
-            console.log('Route not found', request.url);
-            return this.container.create(RenderResponse, 'Not Found', 404);
-        });
+        }
+        catch (e) {}
+        console.log('Route not found', request.url);
+        return this.container.create(RenderResponse, 'Not Found', 404);
     }
 }
