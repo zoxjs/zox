@@ -13,17 +13,17 @@ import {IWebSocketControllerManager} from "./Plugins/Services/WebSocketControlle
 import {ConfigService} from "./Services/ConfigService";
 
 export type BootstrapOptions = {
+    log?: boolean
     config?: {
         defaultsPath?: string
         overridesPath?: string
         useCache?: boolean
         warnIfMissing?: boolean
     }
-    log?: boolean
-    projectPlugins?: boolean
     node_modules?: boolean
     staticPages?: boolean
     graphql?: boolean
+    projectPlugins?: boolean
 }
 
 export async function bootstrap(options?: BootstrapOptions): Promise<ServiceContainer>
@@ -35,26 +35,30 @@ export async function bootstrap(options?: BootstrapOptions): Promise<ServiceCont
 
     const pluginDiscovery = new PluginDiscovery();
 
-    if (options.projectPlugins)
-    {
-        await pluginDiscovery.scanProject();
-    }
-
-    if (options.staticPages)
-    {
-        await pluginDiscovery.scanDirectory(
-            path.join(path.relative(process.cwd(), __dirname), 'OptionalPlugins/StaticPages'));
-    }
-
-    if (options.graphql)
-    {
-        await pluginDiscovery.scanDirectory(
-            path.join(path.relative(process.cwd(), __dirname), 'OptionalPlugins/GraphQL'));
-    }
+    const relativeToCwd = path.relative(process.cwd(), __dirname);
 
     if (options.node_modules)
     {
         await pluginDiscovery.scanNodeModules();
+    }
+    else
+    {
+        await pluginDiscovery.scanProject(path.join(relativeToCwd, '..'));
+    }
+
+    if (options.staticPages)
+    {
+        await pluginDiscovery.scanDirectory(path.join(relativeToCwd, 'OptionalPlugins/StaticPages'));
+    }
+
+    if (options.graphql)
+    {
+        await pluginDiscovery.scanDirectory(path.join(relativeToCwd, 'OptionalPlugins/GraphQL'));
+    }
+
+    if (options.projectPlugins)
+    {
+        await pluginDiscovery.scanProject();
     }
 
     const container = new ServiceContainer();
@@ -75,6 +79,22 @@ export function startServer(container: IServiceContainer, port: number = 8080): 
 {
     const server = http.createServer();
     setupRequestHandler(server, container.get(IWebServer));
+    setupWebSocketHandler(server, container.get(IWebSocketControllerManager));
+    server.listen(port);
+    return server;
+}
+
+export function startWebServer(container: IServiceContainer, port: number = 8080): http.Server
+{
+    const server = http.createServer();
+    setupRequestHandler(server, container.get(IWebServer));
+    server.listen(port);
+    return server;
+}
+
+export function startWebSocketServer(container: IServiceContainer, port: number = 8080): http.Server
+{
+    const server = http.createServer();
     setupWebSocketHandler(server, container.get(IWebSocketControllerManager));
     server.listen(port);
     return server;
