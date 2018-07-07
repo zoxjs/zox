@@ -77,7 +77,10 @@ export async function bootstrap(options?: BootstrapOptions): Promise<ServiceCont
 
     container.create(ServicePluginManager).registerServices(options.forceResolve !== false);
 
-    container.get(IControllerResolverPluginManager).defaultController = options.defaultController;
+    if (options.defaultController)
+    {
+        container.get(IControllerResolverPluginManager).defaultController = options.defaultController;
+    }
 
     return container;
 }
