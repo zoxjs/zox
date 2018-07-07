@@ -1,8 +1,13 @@
 # Zox.js
 
-Develop React apps, Static sites and GraphQL schemas.
+Service-Oriented Web Framework.
 
-Use this command to get started with a new project:
+Build scalable web apps and services
+with React and GraphQL or generate Static Sites.
+
+[VISIT THE WEBSITE](https://zoxjs.github.io/)
+
+Get started with a new project:
 
 ```bash
 npm i zox zox-plugins
@@ -11,7 +16,13 @@ npm i zox zox-plugins
 Add support for GraphQL:
 
 ```bash
-npm i graphql-plugins
+npm i graphql-plugins zox-graphql-ws
+```
+
+Render React Components on the Server-Side:
+
+```bash
+npm i zox-react
 ```
 
 Use handlebars templates:

@@ -1,7 +1,7 @@
 {
   "name": "zox",
   "version": "1.0.17",
-  "description": "Service-Oriented Web Server",
+  "description": "Service-Oriented Web Framework",
   "author": "Zoran Ravic <contact@zoranravic.com> (zoranravic.com)",
   "license": "MIT",
   "repository": "zoxjs/zox",
