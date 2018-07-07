@@ -30,7 +30,7 @@ export class RenderableView extends Renderable
 
     public templateCandidates()
     {
-        const candidates = super.templateCandidates();
+        const candidates = ['view'];
         if (this.mode)
         {
             candidates.push('view-' + this.mode);
