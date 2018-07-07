@@ -5,7 +5,7 @@
   "author": "Zoran Ravic <contact@zoranravic.com> (zoranravic.com)",
   "license": "MIT",
   "repository": "zoxjs/zox",
-  "homepage": "http://zox.zoranravic.com/",
+  "homepage": "http://zoxjs.github.io/",
   "main": "lib/index.js",
   "files": [
     "LICENSE",
@@ -39,8 +39,8 @@
     "@types/marked": "^0.3.0",
     "@types/node": "^10.5.1",
     "graphql": "^0.13.2",
-    "graphql-plugins": "^1.0.0",
-    "zox-plugins": "^1.0.0"
+    "graphql-plugins": "^1.0.1",
+    "zox-plugins": "^1.0.2"
   },
   "plugins": {
     "dirs": [
