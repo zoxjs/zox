@@ -25,6 +25,7 @@ export type BootstrapOptions = {
     staticPages?: boolean
     graphql?: boolean
     projectPlugins?: boolean
+    scanner?: (pd: PluginDiscovery) => Promise<void>
     forceResolve?: boolean
     defaultController?: Constructor<IController>
 }
@@ -66,6 +67,11 @@ export async function bootstrap(options?: BootstrapOptions): Promise<ServiceCont
     if (options.projectPlugins)
     {
         await pluginDiscovery.scanProject();
+    }
+
+    if (options.scanner)
+    {
+        await options.scanner(pluginDiscovery);
     }
 
     const container = new ServiceContainer();
