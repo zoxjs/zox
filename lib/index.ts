@@ -2,7 +2,7 @@ import * as http from "http";
 import * as path from "path";
 import * as WebSocket from "ws";
 import {Socket} from "net";
-import {PluginDiscovery} from "zox-plugins";
+import {Constructor, PluginDiscovery} from "zox-plugins";
 import {IPluginDiscoveryService} from "./Services/PluginDiscoveryService";
 import {IServiceContainer, ServiceContainer} from "./ServiceContainer";
 import {ServicePluginManager} from "./PluginManagers/ServicePluginManager";
@@ -11,6 +11,7 @@ import {IControllerResolverPluginManager} from "./Plugins/PluginManagers/Control
 import {DefaultController} from "./DefaultController";
 import {IWebSocketControllerManager} from "./Plugins/Services/WebSocketControllerManager";
 import {ConfigService} from "./Services/ConfigService";
+import {IController} from "./Controller";
 
 export type BootstrapOptions = {
     log?: boolean
@@ -24,12 +25,18 @@ export type BootstrapOptions = {
     staticPages?: boolean
     graphql?: boolean
     projectPlugins?: boolean
+    forceResolve?: boolean
+    defaultController?: Constructor<IController>
 }
 
 export async function bootstrap(options?: BootstrapOptions): Promise<ServiceContainer>
 {
     options = options || {};
     options.log = options.log !== false;
+    if (options.defaultController === undefined)
+    {
+        options.defaultController = DefaultController;
+    }
 
     if (options.log) console.log('Loading Plugins...');
 
@@ -68,9 +75,9 @@ export async function bootstrap(options?: BootstrapOptions): Promise<ServiceCont
 
     container.registerUnresolved(new ConfigService(options.config));
 
-    container.create(ServicePluginManager).registerServices(true);
+    container.create(ServicePluginManager).registerServices(options.forceResolve !== false);
 
-    container.get(IControllerResolverPluginManager).defaultController = DefaultController;
+    container.get(IControllerResolverPluginManager).defaultController = options.defaultController;
 
     return container;
 }
