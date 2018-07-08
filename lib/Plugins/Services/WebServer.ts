@@ -9,7 +9,7 @@ import {IControllerResolverPluginManager} from "../PluginManagers/ControllerReso
 const serviceKey = Symbol('WebServer');
 
 export type ServerConfig = {
-    publicFiles?: string
+    publicFiles?: string | Array<string>
     trustedHosts?: Array<string>
 }
 
@@ -48,15 +48,12 @@ export class WebServer extends IWebServer implements IOnResolved
 
     public handleRequest(request: IncomingMessage, response: ServerResponse): void
     {
-        if (this.trustedHosts)
+        if (this.trustedHosts && this.trustedHosts.indexOf(request.headers.host) < 0)
         {
-            if (this.trustedHosts.indexOf(request.headers.host) < 0)
-            {
-                console.warn('Untrusted host:', request.headers.host);
-                response.writeHead(500);
-                response.end();
-                return;
-            }
+            console.warn('Untrusted host:', request.headers.host);
+            response.writeHead(500);
+            response.end();
+            return;
         }
         const controller = this.controllerResolverPluginManager.tryResolveController(request.method, request.url);
         if (controller)

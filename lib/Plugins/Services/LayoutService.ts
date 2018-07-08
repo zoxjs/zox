@@ -32,11 +32,11 @@ export type LibraryOptions = {
     scripts?: Array<{
         src?: string
         head?: boolean
-        attributes?: { [attr:string]: string | null }
+        attrs?: { [attr:string]: string | null }
     }>
     styles?: Array<{
         href?: string
-        attributes?: { [attr:string]: string | null }
+        attrs?: { [attr:string]: string | null }
     }>
 }
 
@@ -219,7 +219,7 @@ function loadLibrary(html: RenderableHtml, library: LibraryOptions)
         for (const style of library.styles)
         {
             const href = style.href.includes('//') ? style.href : '/' + style.href;
-            const attributes = buildAttributes(style.attributes);
+            const attributes = buildAttributes(style.attrs);
             html.styles += `<link rel="stylesheet" href="${href}" ${attributes}>\n`;
         }
     }
@@ -228,7 +228,7 @@ function loadLibrary(html: RenderableHtml, library: LibraryOptions)
         for (const script of library.scripts)
         {
             const src = script.src.includes('//') ? script.src : '/' + script.src;
-            const attributes = buildAttributes(script.attributes);
+            const attributes = buildAttributes(script.attrs);
             const tag = `<script src="${src}" ${attributes}></script>\n`;
             if (script.head)
             {
@@ -251,9 +251,9 @@ function buildAttributes(attributes?: { [attr:string]: string | null }): string
     }
     let res = '';
     const attributeNames = Object.getOwnPropertyNames(attributes);
-    for (const name in attributeNames)
+    for (const name of attributeNames)
     {
-        if (attributes[name])
+        if (attributes[name] != null)
         {
             res += ' ' + name + '=' + attributes[name];
         }
