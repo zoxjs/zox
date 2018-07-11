@@ -5,7 +5,7 @@ Service-Oriented Web Framework.
 Build scalable web apps and services
 with React and GraphQL or generate Static Sites.
 
-[VISIT THE WEBSITE](https://zoxjs.github.io/)
+[VISIT THE WEBSITE](http://zoxjs.com/)
 
 Get started with a new project:
 
