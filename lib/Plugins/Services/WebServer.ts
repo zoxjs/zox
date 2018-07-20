@@ -70,22 +70,15 @@ export class WebServer extends IWebServer implements IOnResolved
                 response.end();
                 return;
             }
-            if (util.types.isPromise(result))
+            Promise.resolve(result)
+            .then(res => {
+                res.send(response);
+            },reason =>
             {
-                result
-                .then(res => {
-                    res.send(response);
-                },reason =>
-                {
-                    console.error('Failed to send a response:', reason);
-                    response.writeHead(500);
-                    response.end();
-                });
-            }
-            else
-            {
-                result.send(response);
-            }
+                console.error('Failed to send a response:', reason);
+                response.writeHead(500);
+                response.end();
+            });
         }
         else
         {

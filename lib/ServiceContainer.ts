@@ -40,8 +40,8 @@ export abstract class IServiceContainer implements IService
 
 export class ServiceContainer extends IServiceContainer
 {
-    private services: { [key: string]: any } = {};
-    private unresolvedServices: { [key: string]: any } = {};
+    private services = {};
+    private unresolvedServices = {};
 
     constructor()
     {
@@ -53,7 +53,7 @@ export class ServiceContainer extends IServiceContainer
     {
         if (this.services.hasOwnProperty(service.serviceKey))
         {
-            console.warn(`Overriding service "${service.serviceKey}"`);
+            console.warn(`Overriding service "${service.serviceKey.toString().slice(7,-1)}"`);
         }
         this.services[service.serviceKey] = service;
     }
