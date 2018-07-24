@@ -126,41 +126,40 @@ export class StaticPageParserPluginManager extends IStaticPageParserPluginManage
                         if (pageData.title !== undefined)
                         {
                             pageData.title = String(pageData.title);
-                            if (pageData[pageNameKey] === undefined)
-                            {
-                                pageData[pageNameKey] = urlAlias(pageData.title);
-                            }
-                            if (pageData.date)
-                            {
-                                pageData.date = new Date(pageData.date);
-                            }
-                            if (!pageData.url)
-                            {
-                                const dirPath = path.dirname(path.relative(this.options.pages, filePath));
-                                if (dirPath !== '.')
-                                {
-                                    pageData.url = dirPath + '/' + urlAlias(pageData.title);
-                                }
-                                else
-                                {
-                                    pageData.url = urlAlias(pageData.title);
-                                }
-                            }
-                            if (pageData.url.includes('?'))
-                            {
-                                console.warn("Url contains an invalid character '?' on page:", filePath);
-                            }
-                            else
-                            {
-                                pageData.urlTokens = routeTokens(pageData.url as any);
-                                this.applyIncludes(pageData);
-                                pages.push(pageData);
-                            }
                         }
                         else
                         {
-                            console.warn('Missing title on page:', filePath);
+                            pageData.title = path.basename(filePath, '.' + ext);
                         }
+                        if (pageData[pageNameKey] === undefined)
+                        {
+                            pageData[pageNameKey] = urlAlias(pageData.title);
+                        }
+                        if (pageData.date)
+                        {
+                            pageData.date = new Date(pageData.date);
+                        }
+                        if (!pageData.url)
+                        {
+                            const dirPath = path.dirname(path.relative(this.options.pages, filePath));
+                            if (dirPath !== '.')
+                            {
+                                pageData.url = dirPath + '/' + urlAlias(pageData.title);
+                            }
+                            else
+                            {
+                                pageData.url = urlAlias(pageData.title);
+                            }
+                        }
+                        const qIndex = pageData.url.indexOf('?');
+                        if (qIndex >= 0)
+                        {
+                            pageData.url.substring(0, qIndex);
+                            console.warn("Url contains an invalid character '?' on page: " + filePath);
+                        }
+                        pageData.urlTokens = routeTokens(pageData.url as any);
+                        this.applyIncludes(pageData);
+                        pages.push(pageData);
                     }
                     parsed = true;
                     break;
@@ -168,7 +167,7 @@ export class StaticPageParserPluginManager extends IStaticPageParserPluginManage
             }
             if (!parsed)
             {
-                console.warn('Page type is not supported:', filePath);
+                console.warn('Page type is not supported: ' + filePath);
             }
         }
         return pages;
