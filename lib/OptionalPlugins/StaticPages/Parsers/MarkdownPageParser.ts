@@ -17,11 +17,8 @@ export class MarkdownPageParser implements IStaticPageParser
         {
             const propsString = page.substring(matchStart.index + matchStart[0].length, matchEnd.index);
             const pageData = yaml.safeLoad(propsString) as MarkdownPageData;
-            if (pageData.title !== undefined)
-            {
-                pageData.body = marked(page.substring(matchEnd.index + matchEnd[0].length));
-                return pageData;
-            }
+            pageData.body = marked(page.substring(matchEnd.index + matchEnd[0].length));
+            return pageData;
         }
         console.warn('Missing metadata on page:', filePath);
     }
