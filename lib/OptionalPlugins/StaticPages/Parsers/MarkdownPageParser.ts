@@ -20,6 +20,9 @@ export class MarkdownPageParser implements IStaticPageParser
             pageData.body = marked(page.substring(matchEnd.index + matchEnd[0].length));
             return pageData;
         }
-        console.warn('Missing metadata on page:', filePath);
+        else
+        {
+            return { body: marked(page) };
+        }
     }
 }

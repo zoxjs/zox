@@ -37,12 +37,12 @@ export type StaticPageParserInfo = {
 
 export type StaticPageData = {
     [pageNameKey]?: string
-    type: string
-    title: string
-    urlTokens: Array<string>
-    url: string
+    type?: string
+    title?: string
+    urlTokens?: Array<string>
+    url?: string
     date?: Date
-    include: Array<string> | { [key:string]: string }
+    include?: Array<string> | { [key:string]: string }
 }
 
 export interface IStaticPageParser
@@ -123,13 +123,13 @@ export class StaticPageParserPluginManager extends IStaticPageParserPluginManage
                     if (pageData)
                     {
                         this.propertyDecoratorPluginManager.decorateProperties(pageData);
-                        if (pageData.title !== undefined)
+                        if (pageData.title === undefined)
                         {
-                            pageData.title = String(pageData.title);
+                            pageData.title = path.basename(filePath, '.' + ext);
                         }
                         else
                         {
-                            pageData.title = path.basename(filePath, '.' + ext);
+                            pageData.title = String(pageData.title);
                         }
                         if (pageData[pageNameKey] === undefined)
                         {
@@ -139,7 +139,7 @@ export class StaticPageParserPluginManager extends IStaticPageParserPluginManage
                         {
                             pageData.date = new Date(pageData.date);
                         }
-                        if (!pageData.url)
+                        if (pageData.url === undefined)
                         {
                             const dirPath = path.dirname(path.relative(this.options.pages, filePath));
                             if (dirPath !== '.')
@@ -150,6 +150,10 @@ export class StaticPageParserPluginManager extends IStaticPageParserPluginManage
                             {
                                 pageData.url = urlAlias(pageData.title);
                             }
+                        }
+                        else
+                        {
+                            pageData.url = String(pageData.url);
                         }
                         const qIndex = pageData.url.indexOf('?');
                         if (qIndex >= 0)
