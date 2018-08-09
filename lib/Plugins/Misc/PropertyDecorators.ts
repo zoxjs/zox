@@ -4,9 +4,20 @@ import * as marked from "marked";
 @PropertyDecorator('md')
 export class MarkdownPropertyDecorator implements IPropertyDecorator
 {
-    public decorate(property: string): string
+    public decorate(property: string | Array<string>): string | Array<string>
     {
-        return marked(property);
+        if (Array.isArray(property))
+        {
+            for (let i = 0; i < property.length; ++i)
+            {
+                property[i] = marked(property[i]);
+            }
+            return property;
+        }
+        else
+        {
+            return marked(property);
+        }
     }
 }
 
