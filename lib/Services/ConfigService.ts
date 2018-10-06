@@ -46,14 +46,11 @@ export class ConfigService implements IConfigService
     constructor(options?: ConfigOptions)
     {
         options = options || {};
-        options.defaultsPath = options.defaultsPath || 'config';
-        options.useCache = options.useCache !== false;
-        options.warnIfMissing = options.warnIfMissing !== false;
-        this.defaultsPath = options.defaultsPath;
+        this.defaultsPath = options.defaultsPath || 'config';
         this.overridesPath = options.overridesPath;
-        this.useCache = options.useCache;
-        this.warnIfMissing = options.warnIfMissing;
-        if (options.useCache)
+        this.useCache = options.useCache !== false;
+        this.warnIfMissing = options.warnIfMissing !== false;
+        if (this.useCache)
         {
             this.cache = {};
         }
@@ -94,8 +91,19 @@ export class ConfigService implements IConfigService
 
     public setConfig(configName: string, config: any): void
     {
-        const filePath = path.join(this.overridesPath || this.defaultsPath, configName + '.json');
-        fs.writeFileSync(filePath, JSON.stringify(config));
+        const filePath = path.join(this.overridesPath || this.defaultsPath, configName);
+        if (fs.existsSync(filePath + '.json'))
+        {
+            fs.writeFileSync(filePath + '.json', JSON.stringify(config));
+        }
+        else if (fs.existsSync(filePath + '.yml'))
+        {
+            fs.writeFileSync(filePath + '.yml', yaml.safeDump(config));
+        }
+        else
+        {
+            fs.writeFileSync(filePath + '.yaml', yaml.safeDump(config));
+        }
         if (this.useCache)
         {
             this.cache[configName] = config;
