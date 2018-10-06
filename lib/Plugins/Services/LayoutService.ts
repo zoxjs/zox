@@ -92,7 +92,7 @@ export class LayoutService extends ILayoutService implements IOnResolved
         {
             this.siteConfig.lang = 'en';
         }
-        if (this.blocksDataConfig.directory != null)
+        if (this.blocksDataConfig.directory)
         {
             const filePaths = listFilesSync(this.blocksDataConfig.directory);
             for (const filePath of filePaths)

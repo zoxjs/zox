@@ -3,26 +3,35 @@ import * as path from "path";
 
 export function listFilesSync(directory: string): Array<string>
 {
-    let files: Array<string> = [];
-    const fileList = fs.readdirSync(directory);
-    for (let i = 0; i < fileList.length; ++i)
+    try
     {
-        const file = path.join(directory, fileList[i]);
-        try
+        let files: Array<string> = [];
+        const fileList = fs.readdirSync(directory);
+        for (let i = 0; i < fileList.length; ++i)
         {
-            const stat = fs.statSync(file);
-            if (stat.isDirectory())
+            const file = path.join(directory, fileList[i]);
+            try
             {
-                files = files.concat(listFilesSync(file));
+                const stat = fs.statSync(file);
+                if (stat.isDirectory())
+                {
+                    files = files.concat(listFilesSync(file));
+                }
+                else if (stat.isFile())
+                {
+                    files.push(file);
+                }
             }
-            else if (stat.isFile())
+            catch (e)
             {
-                files.push(file);
             }
         }
-        catch(e) {}
+        return files;
     }
-    return files;
+    catch (e)
+    {
+        return [];
+    }
 }
 
 export function safeAssign(target, ...sources)

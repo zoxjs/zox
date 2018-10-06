@@ -78,25 +78,34 @@ export function watch(directory: string, handler: FileEventHandler, ms: number):
 
 export async function listFileStatsAsync(directory: string): Promise<Array<FileInfo>>
 {
-    let files: Array<FileInfo> = [];
-    const fileList: Array<string> = await readdirAsync(directory);
-    for (let i = 0; i < fileList.length; ++i)
+    try
     {
-        const filePath = path.join(directory, fileList[i]);
-        try
+        let files: Array<FileInfo> = [];
+        const fileList: Array<string> = await readdirAsync(directory);
+        for (let i = 0; i < fileList.length; ++i)
         {
-            const stats: fs.Stats = await statAsync(filePath);
-            const info: FileInfo = {filePath, stats};
-            if (stats.isDirectory())
+            const filePath = path.join(directory, fileList[i]);
+            try
             {
-                files = files.concat(await listFileStatsAsync(filePath));
+                const stats: fs.Stats = await statAsync(filePath);
+                const info: FileInfo = {filePath, stats};
+                if (stats.isDirectory())
+                {
+                    files = files.concat(await listFileStatsAsync(filePath));
+                }
+                else if (stats.isFile())
+                {
+                    files.push(info);
+                }
             }
-            else if (stats.isFile())
+            catch (e)
             {
-                files.push(info);
             }
         }
-        catch(e) {}
+        return files;
     }
-    return files;
+    catch (e)
+    {
+        return [];
+    }
 }
