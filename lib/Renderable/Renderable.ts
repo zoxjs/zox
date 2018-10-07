@@ -16,6 +16,7 @@ export interface IRenderable
     type?: string
     title?: string
     [$metadata]?: RenderingMetadata
+    [key:string]: any;
 }
 
 export class Renderable implements IRenderable
@@ -24,6 +25,9 @@ export class Renderable implements IRenderable
     protected renderService: IRenderService;
 
     public type?: string;
+    public title?: string;
+    public [$metadata]?: RenderingMetadata;
+    [key:string]: any;
 
     constructor(type?: string)
     {

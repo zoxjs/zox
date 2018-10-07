@@ -25,7 +25,7 @@ export abstract class IConfigService implements IService
         return serviceKey;
     }
 
-    public abstract getConfig(configName: string): any;
+    public abstract getConfig(configName: string, invalidateCache?: boolean): any;
     public abstract getGlobalConfig(): GlobalConfig;
     public abstract setConfig(configName: string, config: any): void;
 }
@@ -56,9 +56,9 @@ export class ConfigService implements IConfigService
         }
     }
 
-    public getConfig(configName: string): any
+    public getConfig(configName: string, invalidateCache?: boolean): any
     {
-        if (this.useCache && configName in this.cache)
+        if (!invalidateCache && this.useCache && configName in this.cache)
         {
             return this.cache[configName];
         }
