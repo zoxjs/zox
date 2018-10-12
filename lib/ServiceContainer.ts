@@ -33,7 +33,7 @@ export abstract class IServiceContainer implements IService
     public abstract registerAs(key: ServiceReference<IService>, service): void;
     public abstract registerUnresolved(service: IService): void;
     public abstract registerUnresolvedAs(key: ServiceReference<IService>, service): void;
-    public abstract get<TService extends IService = any>(key: ServiceReference<TService>): TService;
+    public abstract get<TService extends IService = any>(key: ServiceReference<TService>, optional?: boolean): TService | undefined;
     public abstract resolve(target, triggerOnResolved?: boolean): void;
     public abstract create<T = any>(targetClass: Constructor<T>, ...args): T;
 }
@@ -101,7 +101,7 @@ export class ServiceContainer extends IServiceContainer
         }
     }
 
-    public get<TService extends IService = any>(key: ServiceReference<TService>): TService
+    public get<TService extends IService = any>(key: ServiceReference<TService>, optional?: boolean): TService | undefined
     {
         const k: symbol = typeof key === 'symbol' ? key : key.prototype.serviceKey;
         if (this.services.hasOwnProperty(k))
@@ -114,6 +114,10 @@ export class ServiceContainer extends IServiceContainer
             this.services[k] = this.unresolvedServices[k];
             delete this.unresolvedServices[k];
             return this.services[k];
+        }
+        if (optional)
+        {
+            return;
         }
         throw new Error(`Service "${k.toString().slice(7,-1)}" is not registered`);
     }
