@@ -1,5 +1,10 @@
-import {Constructor, PluginDefinition, PluginSetup} from "zox-plugins";
-import {ControllerResolver, IControllerResolver} from "./ControllerResolverPluginManager";
+import {PluginDefinition, PluginSetup} from "zox-plugins";
+import {
+    ControllerFunc,
+    ControllerResolver,
+    ControllerType,
+    IControllerResolver, isControllerClass
+} from "./ControllerResolverPluginManager";
 import {routeTokens, tryMatchRoute} from "../../RoutingUtility";
 import {IController} from "../../Controller";
 import {UrlWithParsedQuery} from "url";
@@ -18,7 +23,7 @@ export type RouteOptions = {
 };
 
 type ControllerData = {
-    controllerClass: Constructor<IController>
+    controllerClass: ControllerType
     method: MethodNames
 };
 
@@ -44,7 +49,7 @@ export class RoutePluginManager implements IControllerResolver, IOnResolved
 
     public onResolved(): void
     {
-        const pluginDefinitions: Array<PluginDefinition<Constructor<IController>, RouteOptions>>
+        const pluginDefinitions: Array<PluginDefinition<ControllerType, RouteOptions>>
             = this.pluginDiscovery.getPlugins(pluginKey);
         for (const pluginDefinition of pluginDefinitions)
         {
@@ -67,7 +72,7 @@ export class RoutePluginManager implements IControllerResolver, IOnResolved
         }
     }
 
-    public tryResolveController(method: string, parsedUrl: UrlWithParsedQuery, tokens: Array<string>): IController | void
+    public tryResolveController(method: string, parsedUrl: UrlWithParsedQuery, tokens: Array<string>): IController | ControllerFunc | void
     {
         for (const controllerData of this.controllersByTokens)
         {
@@ -76,13 +81,28 @@ export class RoutePluginManager implements IControllerResolver, IOnResolved
                 const match = tryMatchRoute(tokens, controllerData.tokens);
                 if (match !== false)
                 {
-                    const controller = this.container.create(controllerData.controllerClass);
-                    controller.query = parsedUrl.query;
-                    if (match !== true)
+                    if (isControllerClass(controllerData.controllerClass))
                     {
-                        controller.params = match;
+                        const controller = this.container.create(controllerData.controllerClass);
+                        controller.query = parsedUrl.query;
+                        if (match !== true)
+                        {
+                            controller.params = match;
+                        }
+                        return controller;
                     }
-                    return controller;
+                    else if (controllerData.controllerClass.prototype)
+                    {
+                        return controllerData.controllerClass.bind({
+                            container: this.container,
+                            query: parsedUrl.query,
+                            params: match !== true ? match : undefined,
+                        });
+                    }
+                    else
+                    {
+                        return controllerData.controllerClass;
+                    }
                 }
             }
         }
@@ -92,16 +112,30 @@ export class RoutePluginManager implements IControllerResolver, IOnResolved
             {
                 if (controllerData.regexp.test(parsedUrl.pathname))
                 {
-                    const controller = this.container.create(controllerData.controllerClass);
-                    controller.query = parsedUrl.query;
-                    return controller;
+                    if (isControllerClass(controllerData.controllerClass))
+                    {
+                        const controller = this.container.create(controllerData.controllerClass);
+                        controller.query = parsedUrl.query;
+                        return controller;
+                    }
+                    else if (controllerData.controllerClass.prototype)
+                    {
+                        return controllerData.controllerClass.bind({
+                            container: this.container,
+                            query: parsedUrl.query,
+                        });
+                    }
+                    else
+                    {
+                        return controllerData.controllerClass;
+                    }
                 }
             }
         }
     }
 }
 
-export function Route(options: RouteOptions)
+export function Route(options: RouteOptions): (pluginClass: ControllerType) => void
 {
     if (!options.method)
     {

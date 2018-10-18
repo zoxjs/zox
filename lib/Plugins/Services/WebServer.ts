@@ -4,7 +4,7 @@ import {Service} from "../../PluginManagers/ServicePluginManager";
 import {StringResponse} from "../../Responses/StringResponse";
 import * as util from "util";
 import {IConfigService} from "../../Services/ConfigService";
-import {IControllerResolverPluginManager} from "../PluginManagers/ControllerResolverPluginManager";
+import {IControllerResolverPluginManager, isControllerInstance} from "../PluginManagers/ControllerResolverPluginManager";
 
 const serviceKey = Symbol('WebServer');
 
@@ -61,7 +61,9 @@ export class WebServer extends IWebServer implements IOnResolved
             let result;
             try
             {
-                result = controller.handle(request);
+                result = isControllerInstance(controller) ?
+                    controller.handle(request) :
+                    controller(request);
             }
             catch (e)
             {

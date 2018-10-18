@@ -1,19 +1,30 @@
 import {Dependency, IOnResolved, IService, IServiceContainer} from "../../ServiceContainer";
 import {Service} from "../../PluginManagers/ServicePluginManager";
 import {Constructor, PluginDefinition, PluginSetup} from "zox-plugins";
-import {IController} from "../../Controller";
+import {IController, MaybePromise} from "../../Controller";
 import {IPluginDiscoveryService} from "../../Services/PluginDiscoveryService";
 import * as url from "url";
 import {UrlWithParsedQuery} from "url";
-import {routeTokens} from "../../RoutingUtility";
+import {RouteParams, routeTokens} from "../../RoutingUtility";
 import {IAliasResolverService} from "./AliasResolverPluginManager";
+import {IncomingMessage} from "http";
+import {IResponse} from "../../Responses/IResponse";
+import {ParsedUrlQuery} from "querystring";
 
 const serviceKey = Symbol('Controller Resolver');
 const pluginKey = Symbol('Controller Resolver');
 
+export type ControllerFuncThis = {
+    container: IServiceContainer
+    params?: RouteParams
+    query?:ParsedUrlQuery
+}
+export type ControllerFunc = (this: void | ControllerFuncThis, request: IncomingMessage) => MaybePromise<IResponse>
+export type ControllerType = Constructor<IController> | ControllerFunc
+
 export interface IControllerResolver
 {
-    tryResolveController(method: string, parsedUrl: UrlWithParsedQuery, tokens: Array<string>): IController | void;
+    tryResolveController(method: string, parsedUrl: UrlWithParsedQuery, tokens: Array<string>): IController | ControllerFunc | void;
 }
 
 export abstract class IControllerResolverPluginManager implements IService
@@ -23,8 +34,8 @@ export abstract class IControllerResolverPluginManager implements IService
         return serviceKey;
     }
 
-    public abstract defaultController: Constructor<IController>;
-    public abstract tryResolveController(method: string, requestUrl: string): IController | void;
+    public abstract defaultController: ControllerType;
+    public abstract tryResolveController(method: string, requestUrl: string): IController | ControllerFunc | void;
 }
 
 @Service
@@ -41,7 +52,7 @@ export class ControllerResolverPluginManager extends IControllerResolverPluginMa
 
     private resolvers: Array<IControllerResolver> = [];
 
-    public defaultController: Constructor<IController>;
+    public defaultController: ControllerType;
 
     public onResolved(): void
     {
@@ -54,7 +65,7 @@ export class ControllerResolverPluginManager extends IControllerResolverPluginMa
         }
     }
 
-    public tryResolveController(method: string, requestUrl: string): IController | void
+    public tryResolveController(method: string, requestUrl: string): IController | ControllerFunc | void
     {
         const parsedUrl: UrlWithParsedQuery = url.parse(decodeURI(requestUrl), true);
         const tokens = routeTokens(parsedUrl.pathname);
@@ -73,9 +84,23 @@ export class ControllerResolverPluginManager extends IControllerResolverPluginMa
         }
         if (this.defaultController)
         {
-            const controller = this.container.create(this.defaultController);
-            controller.query = parsedUrl.query;
-            return controller;
+            if (isControllerClass(this.defaultController))
+            {
+                const controller = this.container.create(this.defaultController);
+                controller.query = parsedUrl.query;
+                return controller;
+            }
+            else if (this.defaultController.prototype)
+            {
+                return this.defaultController.bind({
+                    container: this.container,
+                    query: parsedUrl.query,
+                });
+            }
+            else
+            {
+                return this.defaultController;
+            }
         }
     }
 }
@@ -83,4 +108,14 @@ export class ControllerResolverPluginManager extends IControllerResolverPluginMa
 export function ControllerResolver(priority: number)
 {
     return PluginSetup<IControllerResolver>(pluginKey, priority);
+}
+
+export function isControllerClass(controller): controller is Constructor<IController>
+{
+    return controller.prototype && typeof controller.prototype.handle === 'function';
+}
+
+export function isControllerInstance(controller): controller is IController
+{
+    return controller.__proto__ && typeof controller.__proto__.handle === 'function';
 }

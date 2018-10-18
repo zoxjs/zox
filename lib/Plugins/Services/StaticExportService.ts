@@ -1,6 +1,9 @@
 import {Dependency, IService} from "../../ServiceContainer";
 import {Service} from "../../PluginManagers/ServicePluginManager";
-import {IControllerResolverPluginManager} from "../PluginManagers/ControllerResolverPluginManager";
+import {
+    IControllerResolverPluginManager,
+    isControllerInstance
+} from "../PluginManagers/ControllerResolverPluginManager";
 import {IResponse} from "../../Responses/IResponse";
 import {IRenderable} from "../../Renderable/Renderable";
 import {ILayoutService} from "./LayoutService";
@@ -83,7 +86,8 @@ export class StaticExportService extends IStaticExportService
         {
             try
             {
-                const result = await controller.handle({url, method: 'GET', headers: {}} as any as IncomingMessage);
+                const msg = {url, method: 'GET', headers: {}} as IncomingMessage;
+                const result = await (isControllerInstance(controller) ? controller.handle(msg) : controller(msg));
                 return this.getResponseContent(result, url);
             }
             catch (e)
