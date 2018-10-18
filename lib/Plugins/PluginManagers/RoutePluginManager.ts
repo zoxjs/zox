@@ -8,17 +8,26 @@ import {Dependency, IOnResolved, IServiceContainer} from "../../ServiceContainer
 
 const pluginKey = Symbol('route');
 
+export type MethodNames =
+    'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'ANY' |
+    'get' | 'post' | 'put' | 'patch' | 'delete' | 'head' | 'options' | 'any' | '*'
+
 export type RouteOptions = {
-    route: string
-    method?:
-        'get' | 'post' | 'put' | 'patch' | 'delete' | 'head' | 'options' |
-        'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+    method?: MethodNames
+    route: string | RegExp
 };
 
-export type ControllerData = {
+type ControllerData = {
     controllerClass: Constructor<IController>
+    method: MethodNames
+};
+
+type ControllerDataTokens = ControllerData & {
     tokens: Array<string>
-    method: string
+};
+
+type ControllerDataRegExp = ControllerData & {
+    regexp?: RegExp
 };
 
 @ControllerResolver(0)
@@ -30,7 +39,8 @@ export class RoutePluginManager implements IControllerResolver, IOnResolved
     @Dependency
     protected pluginDiscovery: IPluginDiscoveryService;
 
-    private controllers: Array<ControllerData> = [];
+    private controllersByTokens: Array<ControllerDataTokens> = [];
+    private controllersByRegExp: Array<ControllerDataRegExp> = [];
 
     public onResolved(): void
     {
@@ -38,19 +48,30 @@ export class RoutePluginManager implements IControllerResolver, IOnResolved
             = this.pluginDiscovery.getPlugins(pluginKey);
         for (const pluginDefinition of pluginDefinitions)
         {
-            this.controllers.push({
-                controllerClass: pluginDefinition.pluginClass,
-                tokens: routeTokens(pluginDefinition.data.route),
-                method: pluginDefinition.data.method.toUpperCase(),
-            });
+            if (typeof pluginDefinition.data.route === 'string')
+            {
+                this.controllersByTokens.push({
+                    controllerClass: pluginDefinition.pluginClass,
+                    method: pluginDefinition.data.method,
+                    tokens: routeTokens(pluginDefinition.data.route),
+                });
+            }
+            else
+            {
+                this.controllersByRegExp.push({
+                    controllerClass: pluginDefinition.pluginClass,
+                    method: pluginDefinition.data.method,
+                    regexp: pluginDefinition.data.route,
+                });
+            }
         }
     }
 
     public tryResolveController(method: string, parsedUrl: UrlWithParsedQuery, tokens: Array<string>): IController | void
     {
-        for (const controllerData of this.controllers)
+        for (const controllerData of this.controllersByTokens)
         {
-            if (controllerData.method === method)
+            if (controllerData.method === method || controllerData.method === 'ANY')
             {
                 const match = tryMatchRoute(tokens, controllerData.tokens);
                 if (match !== false)
@@ -65,6 +86,18 @@ export class RoutePluginManager implements IControllerResolver, IOnResolved
                 }
             }
         }
+        for (const controllerData of this.controllersByRegExp)
+        {
+            if (controllerData.method === method || controllerData.method === 'ANY')
+            {
+                if (controllerData.regexp.test(parsedUrl.pathname))
+                {
+                    const controller = this.container.create(controllerData.controllerClass);
+                    controller.query = parsedUrl.query;
+                    return controller;
+                }
+            }
+        }
     }
 }
 
@@ -74,9 +107,24 @@ export function Route(options: RouteOptions)
     {
         options.method = 'GET';
     }
-    if (['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'].indexOf(options.method.toUpperCase()) < 0)
+    if (options.method === '*')
+    {
+        options.method = 'ANY';
+    }
+    const upperCaseMethod: any = options.method.toUpperCase();
+    if (['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS', 'ANY'].indexOf(upperCaseMethod) < 0)
     {
         console.trace('Potentially invalid http method: ' + options.method);
     }
+    options.method = upperCaseMethod;
     return PluginSetup<IController>(pluginKey, options);
 }
+
+export function Get(route: string | RegExp) { return Route({ method: 'GET', route }); }
+export function Post(route: string | RegExp) { return Route({ method: 'POST', route }); }
+export function Put(route: string | RegExp) { return Route({ method: 'PUT', route }); }
+export function Patch(route: string | RegExp) { return Route({ method: 'PATCH', route }); }
+export function Delete(route: string | RegExp) { return Route({ method: 'DELETE', route }); }
+export function Head(route: string | RegExp) { return Route({ method: 'HEAD', route }); }
+export function Options(route: string | RegExp) { return Route({ method: 'OPTIONS', route }); }
+export function AnyMethod(route: string | RegExp) { return Route({ method: 'ANY', route }); }
