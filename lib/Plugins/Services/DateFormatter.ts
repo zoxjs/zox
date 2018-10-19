@@ -89,9 +89,9 @@ export class DateFormatter extends IDateFormatter implements IOnResolved
         }
         const res = this.config.getConfig('date/' + lang) as DateI18n;
         if (!Array.isArray(res.dayNamesShort) ||
-            !Array.isArray(res.dayNamesShort) ||
-            !Array.isArray(res.dayNamesShort) ||
-            !Array.isArray(res.dayNamesShort))
+            !Array.isArray(res.dayNamesLong) ||
+            !Array.isArray(res.monthNamesShort) ||
+            !Array.isArray(res.monthNamesLong))
         {
             console.warn('Invalid date i18n config: date/' + lang);
             this.i18nMap[lang] = undefined;

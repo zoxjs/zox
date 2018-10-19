@@ -2,7 +2,6 @@ import {IncomingMessage, ServerResponse} from "http";
 import {Dependency, IOnResolved, IService} from "../../ServiceContainer";
 import {Service} from "../../PluginManagers/ServicePluginManager";
 import {StringResponse} from "../../Responses/StringResponse";
-import * as util from "util";
 import {IConfigService} from "../../Services/ConfigService";
 import {IControllerResolverPluginManager, isControllerInstance} from "../PluginManagers/ControllerResolverPluginManager";
 
