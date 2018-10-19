@@ -11,6 +11,7 @@ export abstract class IPluginDiscoveryService implements IService, IPluginDiscov
     }
 
     public abstract getPlugins(pluginName: symbol): Array<PluginDefinition>;
+    public abstract add(pluginKey: symbol, plugin: any, data: any): void;
     public abstract scan(obj: any): void;
     public abstract scanModule(moduleExports: any): void;
     public abstract scanDirectory(directory: string): Promise<void>;
