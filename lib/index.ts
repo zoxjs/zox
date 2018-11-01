@@ -12,6 +12,7 @@ import {DefaultController} from "./DefaultController";
 import {IWebSocketControllerManager} from "./Plugins/Services/WebSocketControllerManager";
 import {ConfigService} from "./Services/ConfigService";
 import {IController} from "./Controller";
+import {IMiddlewarePluginManager} from "./Plugins/PluginManagers/MiddlewarePluginManager";
 
 export type BootstrapOptions = {
     log?: boolean
@@ -25,6 +26,7 @@ export type BootstrapOptions = {
     staticPages?: boolean
     graphql?: boolean
     projectPlugins?: boolean
+    middleware?: boolean
     scanner?: (pd: PluginDiscovery) => Promise<void>
     forceResolve?: boolean
     defaultController?: Constructor<IController>
@@ -86,6 +88,11 @@ export async function bootstrap(options?: BootstrapOptions): Promise<ServiceCont
     if (options.defaultController)
     {
         container.get(IControllerResolverPluginManager).defaultController = options.defaultController;
+    }
+
+    if (options.middleware)
+    {
+        await container.get(IMiddlewarePluginManager).resolve();
     }
 
     return container;

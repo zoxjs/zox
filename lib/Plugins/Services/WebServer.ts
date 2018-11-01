@@ -4,6 +4,7 @@ import {Service} from "../../PluginManagers/ServicePluginManager";
 import {StringResponse} from "../../Responses/StringResponse";
 import {IConfigService} from "../../Services/ConfigService";
 import {IControllerResolverPluginManager, isControllerInstance} from "../PluginManagers/ControllerResolverPluginManager";
+import {IMiddlewarePluginManager} from "../PluginManagers/MiddlewarePluginManager";
 
 const serviceKey = Symbol('WebServer');
 
@@ -19,18 +20,21 @@ export abstract class IWebServer implements IService
         return serviceKey;
     }
 
-    public abstract get handleRequestBound(): (request: IncomingMessage, response: ServerResponse) => void;
-    public abstract handleRequest(request: IncomingMessage, response: ServerResponse): void;
+    public abstract get handleRequestBound(): (request: IncomingMessage, response: ServerResponse) => Promise<void>;
+    public abstract handleRequest(request: IncomingMessage, response: ServerResponse): Promise<void>;
 }
 
 @Service
 export class WebServer extends IWebServer implements IOnResolved
 {
     @Dependency
-    protected controllerResolverPluginManager: IControllerResolverPluginManager;
+    protected config: IConfigService;
 
     @Dependency
-    protected config: IConfigService;
+    protected middlewarePluginManager: IMiddlewarePluginManager;
+
+    @Dependency
+    protected controllerResolverPluginManager: IControllerResolverPluginManager;
 
     private trustedHosts: Array<string>;
 
@@ -40,12 +44,12 @@ export class WebServer extends IWebServer implements IOnResolved
         this.trustedHosts = options.trustedHosts;
     }
 
-    public get handleRequestBound(): (request: IncomingMessage, response: ServerResponse) => void
+    public get handleRequestBound(): (request: IncomingMessage, response: ServerResponse) => Promise<void>
     {
         return this.handleRequest.bind(this);
     }
 
-    public handleRequest(request: IncomingMessage, response: ServerResponse): void
+    public async handleRequest(request: IncomingMessage, response: ServerResponse): Promise<void>
     {
         if (this.trustedHosts && this.trustedHosts.indexOf(request.headers.host) < 0)
         {
@@ -54,15 +58,30 @@ export class WebServer extends IWebServer implements IOnResolved
             response.end();
             return;
         }
+        if (this.middlewarePluginManager.hasMiddleware &&
+            await this.middlewarePluginManager.execMiddleware(request, response))
+        {
+            return;
+        }
         const controller = this.controllerResolverPluginManager.tryResolveController(request.method, request.url);
         if (controller)
         {
             let result;
             try
             {
-                result = isControllerInstance(controller) ?
+                result = await (isControllerInstance(controller) ?
                     controller.handle(request) :
-                    controller(request);
+                    controller(request));
+                try
+                {
+                    result.send(response);
+                }
+                catch (e)
+                {
+                    console.error('Failed to send a response:', e);
+                    response.writeHead(500);
+                    response.end();
+                }
             }
             catch (e)
             {
@@ -71,20 +90,6 @@ export class WebServer extends IWebServer implements IOnResolved
                 response.end();
                 return;
             }
-            Promise.resolve(result)
-            .then(res => {
-                res.send(response);
-            }, e =>
-            {
-                console.error('Controller error:', e);
-                response.writeHead(500);
-                response.end();
-            }).catch(e =>
-            {
-                console.error('Failed to send a response:', e);
-                response.writeHead(500);
-                response.end();
-            });
         }
         else
         {
