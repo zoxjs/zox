@@ -10,6 +10,7 @@ import {IConfigService} from "./Services/ConfigService";
 import {ServerConfig} from "./Plugins/Services/WebServer";
 import {EmptyResponse} from "./Responses/EmptyResponse";
 import {RenderResponse} from "./Responses/RenderResponse";
+import {IRenderable} from "./Renderable/Renderable";
 
 const statAsync = util.promisify(fs.stat);
 
@@ -54,7 +55,8 @@ export class DefaultController implements IController
             }
         }
         console.log('Route not found', request.url);
-        return this.container.create(RenderResponse, 'Not Found', 404);
+        const renderable: IRenderable = { toString() { return 'Not Found'; } };
+        return this.container.create(RenderResponse, renderable, 404);
     }
 }
 

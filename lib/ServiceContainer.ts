@@ -6,7 +6,7 @@ export interface IService
 }
 
 export type AbstractConstructor<T> = Function & { prototype: T };
-export type Constructor<T> = { new (...args): T };
+export type Constructor<T, A extends any[]> = { new (...args: A): T };
 export type ServiceReference<TService extends IService = any> = symbol | AbstractConstructor<TService>;
 
 const serviceKey = Symbol('Service Container');
@@ -35,7 +35,7 @@ export abstract class IServiceContainer implements IService
     public abstract registerUnresolvedAs(key: ServiceReference<IService>, service): void;
     public abstract get<TService extends IService = any>(key: ServiceReference<TService>, optional?: boolean): TService | undefined;
     public abstract resolve(target, triggerOnResolved?: boolean): void;
-    public abstract create<T = any>(targetClass: Constructor<T>, ...args): T;
+    public abstract create<T, A extends any[]>(targetClass: Constructor<T, A>, ...args: A): T;
 }
 
 export class ServiceContainer extends IServiceContainer
@@ -149,7 +149,7 @@ export class ServiceContainer extends IServiceContainer
         }
     }
 
-    public create<T = any>(targetClass: Constructor<T>, ...args): T
+    public create<T, A extends any[]>(targetClass: Constructor<T, A>, ...args: A): T
     {
         const instance = new targetClass(...args);
         this.resolve(instance);
