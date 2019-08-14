@@ -63,8 +63,8 @@ export class MiddlewarePluginManager extends IMiddlewarePluginManager
 
     public async execMiddleware(request: IncomingMessage, response: ServerResponse): Promise<boolean | void>
     {
-        for (const middleware of this.middleware) {
-
+        for (const middleware of this.middleware)
+        {
             try
             {
                 const res = await middleware(request, response);

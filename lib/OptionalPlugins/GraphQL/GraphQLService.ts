@@ -6,7 +6,7 @@ import {ExecutionResult} from "graphql/execution/execute";
 import {MaybePromise} from "graphql/jsutils/MaybePromise";
 import {GraphQLFieldResolver} from "graphql/type/definition";
 import Maybe from "graphql/tsutils/Maybe";
-import {assembleSchema} from "graphql-plugins/lib/SchemaAssembler";
+import {assembleSchema} from "graphql-plugins/lib/assembleSchema";
 import {IPluginDiscoveryService} from "../../Services/PluginDiscoveryService";
 import {CancellationToken, SubscribeArgs, SubscriptionManager} from "graphql-plugins/lib/SubscriptionManager";
 import * as fs from "fs";
@@ -196,7 +196,7 @@ export class GraphQLService extends IGraphQLService implements IOnResolved
         {
             if (!this.hasQuery(args.queryId))
             {
-                throw new Error('invalid query id: ' + args.queryId);
+                throw new Error('Invalid query id: ' + args.queryId);
             }
             args.document = this.queries[args.queryId];
             if (args.operationName === undefined)
