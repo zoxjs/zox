@@ -1,4 +1,4 @@
-import {IResponse} from "./IResponse";
+import {IResponse, responseSender} from "./IResponse";
 import {OutgoingHttpHeaders, ServerResponse} from "http";
 
 export class EmptyResponse implements IResponse
@@ -17,4 +17,23 @@ export class EmptyResponse implements IResponse
         response.writeHead(this.statusCode, this.headers);
         response.end();
     }
+}
+
+// export function empty(statusCode: number = 200, headers?: OutgoingHttpHeaders)
+// {
+//     return () => new EmptyResponse(statusCode, headers);
+// }
+
+// export function empty(statusCode: number = 200, headers?: OutgoingHttpHeaders)
+// {
+//     return (response: ServerResponse) =>
+//     {
+//         response.writeHead(statusCode, headers);
+//         response.end();
+//     };
+// }
+
+export function empty(statusCode: number = 200, headers?: OutgoingHttpHeaders)
+{
+    return responseSender(statusCode, headers);
 }

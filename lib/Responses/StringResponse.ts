@@ -1,4 +1,4 @@
-import {IResponse} from "./IResponse";
+import {addHeaders, IResponse, responseSender} from "./IResponse";
 import {OutgoingHttpHeaders, ServerResponse} from "http";
 
 export class StringResponse implements IResponse
@@ -9,7 +9,7 @@ export class StringResponse implements IResponse
 
     constructor(responseString: string, statusCode: number = 200, headers?: OutgoingHttpHeaders)
     {
-        this.responseString = responseString;
+        this.responseString = responseString == null ? '' : '' + responseString;
         this.statusCode = statusCode;
         this.headers = typeof headers == 'object' ? headers : undefined;
     }
@@ -22,4 +22,31 @@ export class StringResponse implements IResponse
         }, this.headers));
         response.end(this.responseString);
     }
+}
+
+// export function text(responseString: string, statusCode: number = 200, headers?: OutgoingHttpHeaders)
+// {
+//     return () => new StringResponse(responseString, statusCode, headers);
+// }
+
+// export function text(responseString: string, statusCode: number = 200, headers?: OutgoingHttpHeaders)
+// {
+//     responseString = responseString == null ? '' : '' + responseString;
+//     return (response: ServerResponse) =>
+//     {
+//         response.writeHead(statusCode, Object.assign({
+//             'Content-Type': 'text/plain',
+//             'Content-Length': Buffer.byteLength(responseString),
+//         }, headers));
+//         response.end(responseString);
+//     };
+// }
+
+export function text(responseString: string, statusCode: number = 200, headers?: OutgoingHttpHeaders)
+{
+    responseString = responseString == null ? '' : '' + responseString;
+    return responseSender(statusCode, addHeaders({
+        'Content-Type': 'text/plain',
+        'Content-Length': Buffer.byteLength(responseString),
+    }, headers), responseString);
 }

@@ -1,5 +1,5 @@
 import {IncomingMessage, ServerResponse} from "http";
-import {Dependency, IOnResolved, IService} from "../../ServiceContainer";
+import {Dependency, IOnResolved, IService, IServiceContainer} from "../../ServiceContainer";
 import {Service} from "../../PluginManagers/ServicePluginManager";
 import {StringResponse} from "../../Responses/StringResponse";
 import {IConfigService} from "../../Services/ConfigService";
@@ -27,6 +27,9 @@ export abstract class IWebServer implements IService
 @Service
 export class WebServer extends IWebServer implements IOnResolved
 {
+    @Dependency
+    protected container: IServiceContainer;
+
     @Dependency
     protected config: IConfigService;
 
@@ -74,7 +77,14 @@ export class WebServer extends IWebServer implements IOnResolved
                     controller(request));
                 try
                 {
-                    result.send(response);
+                    if (typeof result === 'function')
+                    {
+                        result(response, this.container);
+                    }
+                    else
+                    {
+                        result.send(response);
+                    }
                 }
                 catch (e)
                 {
